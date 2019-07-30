@@ -1,129 +1,131 @@
 ## Forge In Action
 
-### 什么是 forge
+> 本文档编自同事小写的手写版 Forge In Action
 
-犹如 Rubyonrails 是⼀一套构建 web 应⽤用的框架 forge 是⼀一套构建区块链 dapps 的框架
-区块链可以 简单地理解成数据库， 公开 可验证的去中⼼心化数据库
+### 什么是 Forge？
+
+犹如 Ruby on Rails 是一套构建 Web 应⽤用的框架，Forge 是一套构建区块链 dApps 的框架，区块链可以简单地理解成数据库，公开可验证的去中心化数据库。
 
 ![](./images/应用类型.png)
 
-一个传统的应用把数据储存在数据库里
-一个 dapp 去中心化应用把数据放在区块链之中，
+一个传统的应用把数据储存在数据库里，一个 dApp 去中心化应用把数据放在区块链之中。
 
-构建⼀一个 dapp ⽐比较 于传统的应⽤用要复杂许多
-P2P，共识算法，网络协议等⼀系列底层的架构要先搭好 ，然后才写用户逻辑来实现业务需求。
-Forge 作为⼀个构建基于区块链的 daap 框架已经做好并且提供了一套接口供应⽤程序调用。 所以对于一名应用程序的开发者，只需关心自己业务逻辑
-forge 会将数据保存在区块链中供应⽤程序使⽤
+构建⼀个 dapp 比较于传统的应⽤要复杂许多，P2P，共识算法，网络协议等⼀系列底层的架构要先搭好，然后才写用户逻辑来实现业务需求。Forge 作为⼀个构建基于区块链的 dApp 框架，将大量的工作已经做好，并且提供了一套接口供应⽤程序调用。所以对于一名应用程序的开发者，只需关心自己业务逻辑，Forge 会将数据保存在区块链中供应⽤程序使⽤。
 
-### 区块链是什么
+### 区块链是什么？
 
-Forge 中有一些概念是源于区块链的，而区块链对于很多开发者并不是很熟悉，这里简单介绍一下一些最基本的概念，以助于之后开发的理解，
+Forge 中有一些概念是源于区块链的，而很多开发者对于区块链并不是很熟悉，这里简单介绍一下一些最基本的概念，以助于之后开发的理解，
 
 > ![](./images/区块链图示.png)
 
-区块链就是条由区块组成的链，它其实是一种数据结构。⻓的样子有点像 linkedlist 链表。
-我们⽤用链表可以存些简单的数据 比如 1，2，3 那区块链中存储的数据是什么呢， 答案是 transaction
+区块链就是一条由**区块**组成的**链**，它其实是一种数据结构。⻓的样子有点像 Linked List 链表。用链表可以存些简单的数据如 1、2、3，那区块链中存储的数据是什么呢？答案是 Transaction
 
-### Transation 是什么？
+#### Transaction 是什么？
 
-Transition 交易，简称为 tx， 是存储在每个区块中的数据。
+transaction 交易，简称为 tx，是存储在每个区块中的数据。
 
 > ![](./images/区块图示.png)
 
-一个区块由区块头和内容组成，头中块高，上个块的哈希等信息；而内容贼是一个个的 tx。
-为什么区块中的数据叫做 transition 交易呢？ 因为世界上第一个区块链项目比特币中，每一区块中的就是一笔笔的比特币交易记录，所以后续的各种区块链项目都用交易，即 transition 来作为区块链中的数据。
+一个区块由区块头和内容组成，头中保存了块高、上个块的哈希等信息，而内容则是一个个的 tx。为什么区块中的数据叫做 transaction 交易呢？因为世界上第一个区块链项目比特币中，每一区块中存的就是一笔笔的比特币交易记录，所以后续的各种区块链项目都用交易即 transaction 来作为区块链中的数据。
 
 ### Forge 中的概念
 
-当我们要做一个有用的应用程序时，通常会涉及到用户，用户会创建一些资产，并且将这些资产进行交易等行为。Forage 将这些行为抽象为两个基本的概念
-——account 账号
-——asset 资产
+当我们要做一个有用的应用程序时，通常会涉及到用户，用户会创建一些资产，并且将这些资产进行交易等行为。Forge 将这些行为抽象为两个基本的概念：
 
-Account 就是传统应用中账户的概念，只不过，在传统应用中，一个用户账号是用用户名和密码来创建的；而在区块链的世界中，用户账号是由链包地址和私钥来创建的。
+- account 账号
+- asset 资产
 
-为什么不用用户名/密码来创建用户账户呢？ 因为在区块链的世界中，其实是没有一个用户登陆的概念的。我们知道，在传统的应用中，用户登陆成功后可以进行一些操作。比如说转账，发微博等。 在比特币中，用户之间是如何在不登陆账户的情况下进行转账的呢》 答案是通过**数字签名** 即将转账的交易用币比特钱包的私钥进行签名后发到区块链上；之后这个签名的交易经由别人验证后就算是有效的了，这样一笔转账的交易就算是完成了。所以**钱包**的概念也是比特币引进的。
+#### Account
 
-Asset 资产则用来表示任何东西，可以是一篇文章，一张图片，一张地图或是一个证书。资产可以由某个用户创建，或者应用程序来创建，一旦创建后，可以用来进行交易，使用等行为。具体是做什么是取决于应用程序。
+Account 就是传统应用中账户的概念，只不过在传统应用中，一个用户账号是用用户名和密码来创建的；而在区块链的世界中，用户账号是由链包地址和私钥来创建的。
 
-### Forge 中的 transition
+为什么不用用户名/密码来创建用户账户呢？ 因为在区块链的世界中，其实是没有一个用户登陆的概念的。我们知道，在传统的应用中，用户登陆成功后可以进行一些操作。比如说转账，发微博等。在比特币中，用户之间是如何在不登陆账户的情况下进行转账的呢？答案是通过**数字签名**，即将转账交易用比特钱包的私钥进行签名后发到区块链上；之后这个签名的交易经由别人验证后就算是有效的了，这样一笔转账的交易就算是完成了。所以**钱包**的概念也是比特币引进的。
 
-前面说到，比特币中的有且仅有的一种 transition 就是转账，Forge 作为一个全功能框架，原生支持十几种 transition，包括创建账号，创建资产，转账等。每一次时间的发上，都等价成一个个的 tx 发布到链上。
+#### Asset
 
-所以说若开发者想在区块链上做开发，归根结底就是通过 forge 在区块链上发布一个个的 transaction。
-我们知道，当 forage 启动之后，便是一个单独的操作系统进程，开发者开发的应用程序如何与 forage 交互来告之其应当发什么 transaction 呢？ forge 提供了两种方式，graphal 和 grpc
+Asset 资产则用来表示任何东西，可以是一篇文章，一张图片，一张地图或是一个证书。资产可以由某个用户创建，或者应用程序来创建，一旦创建后，可以用来进行交易、使用等行为。具体是做什么取决于应用程序。
 
-### 如何与 forge 交互？
+### Forge 中的 Transaction
 
-forge 本身提供了两种与其交互的形式
-——graphql
-——gRPC
+前面说到，比特币中有且仅有的一种 Transaction 就是转账，Forge 作为一个全功能框架，原生支持十几种 Transaction，包括创建账号、创建资产、转账、交换等。每一次事件的发生，都等价成一个个的 Transaction 发布到链上。
 
-这可能与我们平时调用某个服务器提供的 API 不太一样。 我们平日接解的 API 调用大都是通过 JSOW 发送一些 http 请求访问某个 API 来获取一些资源，为什么 forge 没有用 Json API 呢？
+所以说若开发者想在区块链上做开发，归根结底就是通过 Forge 在区块链上发布一个个的 Transaction。
 
-原因很简单，效率。 关于 Graphql 和 gRPL 的优点，这里不再展开，不过会简单介绍一下这二种技术。
+我们知道，当 Forge 启动之后，便是一个单独的操作系统进程，开发者开发的应用程序如何与 Forge 交互来告之其应当发什么 Transaction 呢？ Forge 提供了两种方式，GraphQL 和 gRPC。
 
-### Graphql 怎么用？
+### 如何与 Forge 交互？
 
-Graphql 是 facebook 开源的一项技术，皆在帮助用户更高效快捷地向用户服务器获取资源，
+Forge 本身提供了两种与其交互的形式：
 
-> ![](./images/Graphql怎么用.png)
+- GraphQL
+- gRPC
 
-Graphql 在网络的应用层面用的是 http/1.1 或 http/2 协议的 POST 请求，服务器接收从客户端发来的 queny 请求，经过处理后返回一个 JSON 的结果。
+这可能与我们平时调用某个服务器提供的 API 不太一样。我们平日接触的 API 调用大都是通过 JSON 发送一些 HTTP 请求访问某个 API 来获取一些资源，为什么 Forge 没有用 JSON API 呢？
 
-客户端能发送的请求分三类
--——query 用来读取资源
-——-mutation 用来创建改变资源
-————subscription 用来订阅事件
+原因很简单，**效率**。关于 GraphQL 和 gRPC 的优点，这里不再展开，不过会简单介绍一下这二种技术。
 
-在 forge 中，query 一般用来作查询链上的数据； mutation 一般用来作向链发送 transition； subscription 用来订阅链上发生的事件。
+### GraphQL 怎么用？
+
+GraphQL 是 Facebook 开源的一项技术，皆在帮助用户更高效快捷地从服务器获取资源，
+
+> ![](./images/GraphQL怎么用.png)
+
+GraphQL 在网络的应用层面用的是 HTTP/1.1 或 HTTP/2 协议的 POST 请求，服务器接收从客户端发来的 Query 请求，经过处理后返回一个 JSON 的结果。
+
+客户端能发送的请求分三类：
+
+- Query：用来读取资源
+- Mutation：用来创建、改变资源
+- Subscription：用来订阅事件
+
+在 Forge 中，Query 一般用来作查询链上的数据； Mutation 一般用来作向链发送 Transaction；Subscription 用来订阅链上发生的事件。
 
 ## gRPC 怎么用？
 
-gRpc 是 Google 出的一套 RPC 框架，简单来说，
-grpc = protobuf+http/2
+gRPC 是 Google 出的一套 RPC 框架，简单来说：`gRPC = protobuf+HTTP/2`
 
-protocal buffer 简称 protobuf， 也是 google 自家出的一种序列化/反序列化标准。是比 XML，JSON 更加高效的序列化方式。 它是通过预先定义好一个。proto 文件，记录了要传输的 message 都有哪些 key 以及它们的编号，之后序列化的时候只对 value 进行编码，以达到节省空间的目的，使用方法如下
+Protocol Buffer 简称 Protobuf，也是 Google 自家出的一种序列化/反序列化标准。是比 XML，JSON 更加高效的序列化方式。它是通过预先定义好一个 `.proto` 文件，记录了要传输的信息都有哪些字段以及它们的编号，之后序列化的时候只对字段的值进行编码，以达到节省空间的目的，使用方法如下：
 
 > ![](./images/grac怎么用.png)
 
-1， 用户定义要传输的信息有哪些字段，写到一个.proto 文件中，然后用官方或社区提供的你要用的语言的插件将其编译成.cpp 或.ex 或.py 文件中。
-2，在你的程序中，用刚才生成出来的模块提供的序列化函数，将一个 struct 转化成二进制以便在网络中进行传输，接受方用反序列化函数得到的二进制转化回 struct。
+1. 用户定义要传输的信息有哪些字段，写到一个 `.proto` 文件中，然后用官方或社区提供的你要用的语言的插件将其编译成 `.cpp` 或 `.ex` 或 `.py` 文件中。
+1. 在你的程序中，用刚才生成出来的模块提供的序列化函数，将一个数据对象转化成二进制以便在网络中进行传输，接受方用反序列化函数得到的二进制转化回数据对象。
 
-用 protobuf 进行的对数据的序列化能很大程度上节省空间，这样传输在网络上的数据变少了，请求就更高效了。但是需要付出的代价就是
+用 Protobuf 进行的对数据的序列化能很大程度上节省空间，这样传输在网络上的数据变少了，请求就更高效了。但是需要付出的代价就是
 
-1，首先要有服务端定义的.proto 文件
-2，你要用的语言要有 protoc（官方提供的 protobuf 的编译器）的插件。
+1. 首先要有服务端定义的 `.proto` 文件
+1. 你要用的语言要有 `protoc`（官方提供的 protobuf 的编译器）的插件。
 
-forge 所有用到的 proto 文件都在 arcblock/ forge——abi 这个仓库下提供； Google 官方支持 c++，c#，go，python 的插件，其他的语言要到社区中去找了。
+Forge 所有用到的 `proto` 文件都在 [ArcBlock/forge-abi](HTTPs://github.com/ArcBlock/forge-abi) 仓库中；Google 官方支持 C++、C#、Go、Python 的插件，其他的语言要到社区中去找了。
 
-那么，pRpc 是啥呢 看图说话
+那么，gRPC 是啥呢？看图说话：
 
 > ![](./images/grac是啥.png)
 
-——首先服务器端定义好一套请求/响应的.proto 文件
-——客户端把要发的请求通过 protobuf 序列化成二进制后，通过 http/2 协议发给服务器
-——服务器收到请求，处理之，然后再以 protobuf 序列化的二进制发回响应——客户端收到响应后，反序列化拿到结果
+- 首先服务器端定义好一套请求/响应的.proto 文件
+- 客户端把要发的请求通过 protobuf 序列化成二进制后，通过 HTTP/2 协议发给服务器
+- 服务器收到请求，处理之，然后再以 protobuf 序列化的二进制发回响应——客户端收到响应后，反序列化拿到结果
 
-之所以用 http/2 协议而不再用 http/1.1 是为了能够更高效地传输数据。
+之所以用 HTTP/2 协议而不再用 HTTP/1.1 是为了能够更高效地传输数据。
 同时，需要用一个官方提供的或是社区提供的 gRPC 的库来使用 gRPC。
 
-### Grapgql 还是 gRPC？
+### GraphQL 还是 gRPC？
 
-forge 提供了 Grapgql 和 gRPC 两种方式来与其交互，那么到底用哪个好呢？
-Graphql 上手简单，只需要用一个 http 客户端和一个 Json 的原就能收发数据了，而 gRpC 上手复杂，需要了解 protobuf,并用一个 gRPC 才能收发数据。
-我们推荐用 gRPC，虽然看起来上手难点，但是其使用起来更灵活； 而 Graphql 上手简单，更适合一些简单的查询。
+Forge 提供了 GraphQL 和 gRPC 两种方式来与其交互，那么到底用哪个好呢？
+GraphQL 上手简单，只需要用一个 HTTP 客户端和一个 JSON 的原就能收发数据了，而 gRPC 上手复杂，需要了解 protobuf,并用一个 gRPC 才能收发数据。
+我们推荐用 gRPC，虽然看起来上手难点，但是其使用起来更灵活； 而 GraphQL 上手简单，更适合一些简单的查询。
 
-### Forge 中如何发送 transition？
+### Forge 中如何发送 transaction？
 
-前面讲了若开发者想在区块链上做开发，归根到底就是通过 forge 在区块链上发布一个一个的 transaction。又讲了 forge 提供 Graphql 和 gRPC 的方式来交互。接下来就讲一下如何在 forge 中通过 gRPC 中发送 transaction。
+前面讲了若开发者想在区块链上做开发，归根到底就是通过 Forge 在区块链上发布一个一个的 transaction。又讲了 Forge 提供 GraphQL 和 gRPC 的方式来交互。接下来就讲一下如何在 Forge 中通过 gRPC 中发送 transaction。
 
 > ![](./images/如何发送给transaction.png)
 
-怎么样，发送的流程简单吧！就是把 forge 中定义的 transaction 通过 gRPC 发给 forge，之后 forge 会返回一个哈希作为结果。
+怎么样，发送的流程简单吧！就是把 Forge 中定义的 transaction 通过 gRPC 发给 Forge，之后 Forge 会返回一个哈希作为结果。
 
-好的，那么接下来，我们就来看一下 forge 中定义的 transition 长什么样。
+好的，那么接下来，我们就来看一下 Forge 中定义的 transaction 长什么样。
 
-Forge 中对于 transaction 的定义可以在 arcblock/forge——abi/lib/protobuf/type.proto 下面找到。
+Forge 中对于 transaction 的定义可以在 arcblock/Forge——abi/lib/protobuf/type.proto 下面找到。
 
 ```protobuf
 message Transaction {
@@ -137,7 +139,7 @@ message Transaction {
 }
 ```
 
-我们需要做的事情就是构造出来这个 transaction 后，将其发送给 forge，接下来我们会用一个具体的例子来演示如何在链上创建一个钱包账号。
+我们需要做的事情就是构造出来这个 transaction 后，将其发送给 Forge，接下来我们会用一个具体的例子来演示如何在链上创建一个钱包账号。
 
 ### Forge 中的钱包
 
@@ -171,12 +173,12 @@ message walletinfor{
 
 这里的细节请参考 arcblock/ abt-did-spec 里面关于创建 DID 的文档
 
-以下的参考代码内为 Elixir 代码，用的是我们已经开源的 forge-elixir-sdk 的库
+以下的参考代码内为 Elixir 代码，用的是我们已经开源的 Forge-elixir-sdk 的库
 
 wallet-type = ForgeAbi。WalletType。new （role：：role_account， key：：ed25519，hash：：sha3）
 wallet = ForgeSdk。Wallet。util。create（wallet-type）
 
-%forgeABi.WalletInfo{
+%ForgeABi.WalletInfo{
 address： "z1mwolwq...."
 
 ## DID 地址，里面包含了私钥类型，哈希算法及角色
@@ -202,14 +204,14 @@ google. protobuf.Any itx =15
 }
 还剩下 signature， signatures heitx 未填， signaures 是多方签名，我们这一步还用不到，不用管它，在看签名之前我们先来看一下 itx。
 
-## forge 中的 itx 是什么?
+## Forge 中的 itx 是什么?
 
 itx 是 inner transaction 的缩写，都已经有了 tx，为啥还要有 itx 呢？
 
 > ![](./images/itx.png)
 
 做个比喻，这个就像写信一样，每封信都有标题，抬头，征文，日期，和签名等，但是不同的信的征文内容是不同的。
-tx 就是信的模版，包括寄信人，标题，签名；而 itx 则是信的正文，代表了具体内容。forge 只吃了十几种 tx，也就是说，有十几种 itx。
+tx 就是信的模版，包括寄信人，标题，签名；而 itx 则是信的正文，代表了具体内容。Forge 只吃了十几种 tx，也就是说，有十几种 itx。
 我们要做的就是将刚创建的钱包中申明上的链的 itx 叫做 declare
 
         message DeclareTx{
@@ -229,10 +231,10 @@ google.protobuf.Any itx = 15;
             bytes value =2;
         }
 
-既然是任意类型，那只用 value 来表示不就好了吗？ type-urt 是个什么鬼？ 这个其实是给应用程序用的，告诉它这个任意类型到底是个什么类型。google 射击的本意是这个 type-url 是一个 url， 但是我们并不需要它是一个 url，可以在任何字符串 forge 中定义的 type-url 长这样
+既然是任意类型，那只用 value 来表示不就好了吗？ type-urt 是个什么鬼？ 这个其实是给应用程序用的，告诉它这个任意类型到底是个什么类型。google 射击的本意是这个 type-url 是一个 url， 但是我们并不需要它是一个 url，可以在任何字符串 Forge 中定义的 type-url 长这样
 
 fg：t：declare
-forge 缩写 type itx 类型
+Forge 缩写 type itx 类型
 declare = ForgeAbi. OeclareTx。new（moniker：“Johnson”）
 value = ForgeAbi.DeckclareTx.encede(declare)
 itx = Google.Parte.Any.new(type-url:"fg:t:declare",value:value)
@@ -243,7 +245,7 @@ itx = Google.Parte.Any.new(type-url:"fg:t:declare",value:value)
 message Transaction {
 string from = 1; ##wallet.address
 uint64 noncew =2; ##1
-string chain_id =3; ##forge
+string chain_id =3; ##Forge
 bytes pk=4; ##wallet.pk
 bytes signature = 13;
 repeated Multisly signatures =14;
@@ -253,9 +255,9 @@ google.protobuf. Any itx = 15;
 
 现在就差最后一步，签名了。
 
-### forge 中如何给 tx 签名？
+### Forge 中如何给 tx 签名？
 
-forge 中的钱包支持 2 中椭圆形区间数字签名算法，ed25519 和 secp256 看
+Forge 中的钱包支持 2 中椭圆形区间数字签名算法，ed25519 和 secp256 看
 。所谓的数字签名就是用钱包的私钥对 tx 的哈希做一个签名，之后别人可以用其公钥进行验证。
 signature = sign（data，sk）
 data 为 tx 序列化后的二进制哈希
@@ -265,20 +267,20 @@ sk 这里是钱包的私钥
         sig =Mcrypto.sign!(%Ed25519{},hash,wallet.sk)
         tx = %{tx|signature :sig}
 
-至此，我们的 tx 终于算是构造完成并且签好名了！ 接下来只需要把这个 tx 发送给 forge 啦！
+至此，我们的 tx 终于算是构造完成并且签好名了！ 接下来只需要把这个 tx 发送给 Forge 啦！
 
-### 如何向 forge 发送 tx？
+### 如何向 Forge 发送 tx？
 
-因为我们用 gRPC 与 forge 进行交互，所以我们只需要拍使用一个 gRPC 提供的发送 tx 的服务就行了，这个服务在 forge 中叫 send-tx，定义在 arcblock/forge-abi/lib/protobuf/servoce.proto 中。
+因为我们用 gRPC 与 Forge 进行交互，所以我们只需要拍使用一个 gRPC 提供的发送 tx 的服务就行了，这个服务在 Forge 中叫 send-tx，定义在 arcblock/Forge-abi/lib/protobuf/servoce.proto 中。
 进行这项操作需要参考你所用的语言的 gRPC 的库的文档，在 Elicir 中，这样做
 Forgesdk.send-tx(tx:tx)
 "48c265bb...."
 
-之后返回的哈希即是这个 tx 在链上的哈希喽！用这个哈希就可以在链上查到其状态了。当我们把 tx 发送请给 forge 后，forge 会做一系列的检查，包括发送 tx 的钱包地址是否有效，签名是否有效等。之后 forge 会把这个 tx 发送给下层的共识引擎，并且广播到 DID 网络中，最后会被打包到新的区块中，这样子我们发的 tx 相当于成功上链啦！ 当然上链并不代表这个 tx 就是成功了的，还需要检查这个 tx 的状态才行哦。
+之后返回的哈希即是这个 tx 在链上的哈希喽！用这个哈希就可以在链上查到其状态了。当我们把 tx 发送请给 Forge 后，Forge 会做一系列的检查，包括发送 tx 的钱包地址是否有效，签名是否有效等。之后 Forge 会把这个 tx 发送给下层的共识引擎，并且广播到 DID 网络中，最后会被打包到新的区块中，这样子我们发的 tx 相当于成功上链啦！ 当然上链并不代表这个 tx 就是成功了的，还需要检查这个 tx 的状态才行哦。
 
-### forge 中常用的 tx
+### Forge 中常用的 tx
 
-方才我们学习了如何构建并签名一个 declare tx， 并且成功将其发送给 forge，这样我们就成功地在 forge 上创建了一个钱包账户，接下来我们来看一下，forge 中有那些常用的 tx。
+方才我们学习了如何构建并签名一个 declare tx， 并且成功将其发送给 Forge，这样我们就成功地在 Forge 上创建了一个钱包账户，接下来我们来看一下，Forge 中有那些常用的 tx。
 
 假设有如下场景
 用户 a 创建了一个账户后，签到一次得到一些 token，之后创建了一个资产（游戏地图），
@@ -294,7 +296,7 @@ poke 就是戳一下，作用是签到领取 25 个 token，一天只能领取�
         message Transaction{
             string from =1 ; ##wallet.address
             uint64 nonce = 2; ## 0 <-   注意对于poke来说nonce要用o
-            string chain_id =3； ## forge
+            string chain_id =3； ## Forge
             bytes pk=4； ## wallet.pk
             bytes signature =13;
             repeated Multisly signatures =14;
@@ -314,7 +316,7 @@ string address =2； ##向哪个钱包地址签到，这个是固定的地址，
 
 然后把这个 itx 塞到上面的 tx 中，签名之后，发到链上吧！
 
-        forgesdk.send-tx (tx:tx)
+        Forgesdk.send-tx (tx:tx)
         "66313AFB...."
 
 成功以后去链上查询一下，此时我们的 jonsnow 常昊就多了 25 个 token 啦！
@@ -337,18 +339,18 @@ asset 表示资产，可以代表任何可交易的物体，这里我们用游�
 这里定义了 7 个字段，我们只关心其中 4 个，其余的可以不管。
 
         map = %Google.Protobuf.Any{value:"thisb is my map}
-        asset = forgeAbi.CreateAssetTx.new(transferable:true,moniker:"map1",data:map)
+        asset = ForgeAbi.CreateAssetTx.new(transferable:true,moniker:"map1",data:map)
 
 接下来还有 asset 中的地址为空，我们需要自己将它算出来。
-forge 中的所有东西的 id 都是支持 DID 标准，对于 asset 的地址，也是一个 DID。那么 asset 地址怎么算呢？
+Forge 中的所有东西的 id 都是支持 DID 标准，对于 asset 的地址，也是一个 DID。那么 asset 地址怎么算呢？
 
-        hash = mcrypto.hash(%sha3{},forgeAbi,createAssetTx.encode(itx))
+        hash = mcrypto.hash(%sha3{},ForgeAbi,createAssetTx.encode(itx))
 
         之后的步骤请参考abt-did-spec文档中的步骤，这里算出的哈希作为第5步的输入。并且在选role-type时要选asset。
 
 地址算好后填到上面的 asset 中
 
-        value = forgeabi.createAsseTx.encode(asset))
+        value = Forgeabi.createAsseTx.encode(asset))
         itx = Google.proto.Any.new(type-url:"fg:t:create-asset",value:value)
         %Google.proto.Any{type-url:"fg:t:create_asset",value:<<10.4.109....>>}
 
@@ -426,7 +428,7 @@ ok, 接下来我们要把该资产转移给另一个账户，这会用到 transf
         Message Transaction{
             string from =1; ##walle.address
             uint64 nonce=2; ##1
-            string chain.id = 3; ##forge
+            string chain.id = 3; ##Forge
             bytes pk = 4; ##wallet.pk
             bytes signature = 13; ##signature
             repeated Multisig signatures =  14;
