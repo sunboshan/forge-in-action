@@ -1,10 +1,10 @@
 ## Forge In Action
 
-> 本文档编自同事小写的手写版 Forge In Action
+> 本文档编自小山的手写版 Forge In Action
 
 ### 什么是 Forge？
 
-犹如 Ruby on Rails 是一套构建 Web 应⽤用的框架，Forge 是一套构建区块链 dApps 的框架，区块链可以简单地理解成数据库，公开可验证的去中心化数据库。
+犹如 Ruby on Rails 是一套构建 Web 应⽤的框架，Forge 是一套构建区块链 dApps 的框架。区块链可以简单地理解成数据库，公开可验证的去中心化数据库。
 
 ![](./images/应用类型.png)
 
@@ -68,7 +68,7 @@ Forge 本身提供了两种与其交互的形式：
 
 GraphQL 是 Facebook 开源的一项技术，皆在帮助用户更高效快捷地从服务器获取资源，
 
-> ![](./images/GraphQL怎么用.png)
+> ![](./images/Graphql怎么用.png)
 
 GraphQL 在网络的应用层面用的是 HTTP/1.1 或 HTTP/2 协议的 POST 请求，服务器接收从客户端发来的 Query 请求，经过处理后返回一个 JSON 的结果。
 
@@ -82,7 +82,11 @@ GraphQL 在网络的应用层面用的是 HTTP/1.1 或 HTTP/2 协议的 POST 请
 
 ## gRPC 怎么用？
 
-gRPC 是 Google 出的一套 RPC 框架，简单来说：`gRPC = protobuf+HTTP/2`
+gRPC 是 Google 出的一套 RPC 框架，简单来说：
+
+```
+gRPC = protobuf + HTTP/2
+```
 
 Protocol Buffer 简称 Protobuf，也是 Google 自家出的一种序列化/反序列化标准。是比 XML，JSON 更加高效的序列化方式。它是通过预先定义好一个 `.proto` 文件，记录了要传输的信息都有哪些字段以及它们的编号，之后序列化的时候只对字段的值进行编码，以达到节省空间的目的，使用方法如下：
 
@@ -106,8 +110,7 @@ Forge 所有用到的 `proto` 文件都在 [ArcBlock/forge-abi](HTTPs://github.c
 - 客户端把要发的请求通过 protobuf 序列化成二进制后，通过 HTTP/2 协议发给服务器
 - 服务器收到请求，处理之，然后再以 protobuf 序列化的二进制发回响应——客户端收到响应后，反序列化拿到结果
 
-之所以用 HTTP/2 协议而不再用 HTTP/1.1 是为了能够更高效地传输数据。
-同时，需要用一个官方提供的或是社区提供的 gRPC 的库来使用 gRPC。
+之所以用 HTTP/2 协议而不再用 HTTP/1.1 是为了能够更高效地传输数据。同时，需要用一个官方提供的或是社区提供的 gRPC 的库来使用 gRPC。
 
 ### GraphQL 还是 gRPC？
 
@@ -129,13 +132,13 @@ Forge 中对于 transaction 的定义可以在 arcblock/Forge——abi/lib/proto
 
 ```protobuf
 message Transaction {
-  string from = 1; 这个是谁发的，即钱包地址
-  uint64 nonce = 2 ； nonce 用来防止重敌攻击，每次需要递增发送
-  string chain_id =3；  tx发送至的链的id
-  bytes pk = 4； 发tx的钱包的公钥
-  bytes signature = 13； 发tx的钱包的签名
-  repeated mulitisly signatures = 14； 多方签名
-  google. protobuf.Any itx=15 ；inner transaction ，这个t具体是干啥的。
+  string from = 1;    # 这个是谁发的，即钱包地址
+  uint64 nonce = 2 ； # nonce 用来防止重敌攻击，每次需要递增发送
+  string chain_id =3；# tx发送至的链的id
+  bytes pk = 4；      # 发tx的钱包的公钥
+  bytes signature = 13；# 发tx的钱包的签名
+  repeated mulitisly signatures = 14；# 多方签名
+  google. protobuf.Any itx=15 ；      # inner transaction ，这个tx具体是干啥的
 }
 ```
 
@@ -152,34 +155,40 @@ message Transaction {
 ```protobuf
 message walletinfor{
   bytes
-  sl = 2;私钥
-  bytes pk =3； 公钥
-  string address = 4； DID地址
+  sl = 2;      # 私钥
+  bytes pk =3；# 公钥
+  string address = 4；# DID地址
 }
 ```
 
 我们的钱包是一个支持 DID 规范的钱包，里面有 3 个选项可选
-—— role—type 角色
-—— key—type 私钥算法
-—— hash-type 哈希算法
 
-    message WalletType{
+— role—type 角色
+— key—type 私钥算法
+— hash-type 哈希算法
 
-        keyType key= 1;
-        HashType hash =2;
-        EncodingType address = 3;
-        RoleType role =4;
-    }
+```
+message WalletType{
+
+    keyType key= 1;
+    HashType hash =2;
+    EncodingType address = 3;
+    RoleType role =4;
+}
+```
 
 这里的细节请参考 arcblock/ abt-did-spec 里面关于创建 DID 的文档
 
 以下的参考代码内为 Elixir 代码，用的是我们已经开源的 Forge-elixir-sdk 的库
 
-wallet-type = ForgeAbi。WalletType。new （role：：role_account， key：：ed25519，hash：：sha3）
-wallet = ForgeSdk。Wallet。util。create（wallet-type）
+```
+wallet-type = ForgeAbi.WalletType.new role: :role_account, key: :ed25519, hash: :sha3）
+wallet = ForgeSdk.Wallet.util.create(wallet_type）
 
 %ForgeABi.WalletInfo{
 address： "z1mwolwq...."
+...
+```
 
 ## DID 地址，里面包含了私钥类型，哈希算法及角色
 
