@@ -93,12 +93,12 @@ Protocol Buffer 简称 Protobuf，也是 Google 自家出的一种序列化/反�
 > ![](./images/grac怎么用.png)
 
 1. 用户定义要传输的信息有哪些字段，写到一个 `.proto` 文件中，然后用官方或社区提供的你要用的语言的插件将其编译成 `.cpp` 或 `.ex` 或 `.py` 文件中。
-1. 在你的程序中，用刚才生成出来的模块提供的序列化函数，将一个数据对象转化成二进制以便在网络中进行传输，接受方用反序列化函数得到的二进制转化回数据对象。
+2. 在你的程序中，用刚才生成出来的模块提供的序列化函数，将一个数据对象转化成二进制以便在网络中进行传输，接受方用反序列化函数得到的二进制转化回数据对象。
 
 用 Protobuf 进行的对数据的序列化能很大程度上节省空间，这样传输在网络上的数据变少了，请求就更高效了。但是需要付出的代价就是
 
 1. 首先要有服务端定义的 `.proto` 文件
-1. 你要用的语言要有 `protoc`（官方提供的 protobuf 的编译器）的插件。
+2. 你要用的语言要有 `protoc`（官方提供的 protobuf 的编译器）的插件。
 
 Forge 所有用到的 `proto` 文件都在 [ArcBlock/forge-abi](HTTPs://github.com/ArcBlock/forge-abi) 仓库中；Google 官方支持 C++、C#、Go、Python 的插件，其他的语言要到社区中去找了。
 
@@ -128,15 +128,15 @@ GraphQL 上手简单，只需要用一个 HTTP 客户端和一个 JSON 的原就
 
 好的，那么接下来，我们就来看一下 Forge 中定义的 transaction 长什么样。
 
-Forge 中对于 transaction 的定义可以在 arcblock/Forge——abi/lib/protobuf/type.proto 下面找到。
+Forge 中对于 transaction 的定义可以在 `arcblock/forge-abi/lib/protobuf/type.proto` 下面找到。
 
 ```protobuf
 message Transaction {
-  string from = 1;    # 这个是谁发的，即钱包地址
-  uint64 nonce = 2 ； # nonce 用来防止重敌攻击，每次需要递增发送
-  string chain_id =3；# tx发送至的链的id
-  bytes pk = 4；      # 发tx的钱包的公钥
-  bytes signature = 13；# 发tx的钱包的签名
+  string from = 1;                    # 这个是谁发的，即钱包地址
+  uint64 nonce = 2 ；                 # nonce 用来防止重敌攻击，每次需要递增发送
+  string chain_id =3；                # tx发送至的链的id
+  bytes pk = 4；                      # 发tx的钱包的公钥
+  bytes signature = 13；              # 发tx的钱包的签名
   repeated mulitisly signatures = 14；# 多方签名
   google. protobuf.Any itx=15 ；      # inner transaction ，这个tx具体是干啥的
 }
@@ -147,16 +147,18 @@ message Transaction {
 ### Forge 中的钱包
 
 创建钱包分 2 步，
-1，在本地创建一个钱包
-2，把这个钱包申明（decleare）到链上去，这样就算完成了用户账号的创建。
+
+1. 在本地创建一个钱包
+2. 把这个钱包申明（decleare）到链上去，这样就算完成了用户账号的创建。
+
 所以说了这么久，钱包究竟是什么东西呢？
 钱包其实就是一个存储了公钥/私钥/地址的一个数据结构，被定义于 protobuf 中，
 
 ```protobuf
 message walletinfor{
   bytes
-  sl = 2;      # 私钥
-  bytes pk =3；# 公钥
+  sl = 2;             # 私钥
+  bytes pk =3；       # 公钥
   string address = 4；# DID地址
 }
 ```
@@ -169,49 +171,44 @@ message walletinfor{
 
 ```
 message WalletType{
-
-    keyType key= 1;
-    HashType hash =2;
+    keyType key = 1;
+    HashType hash = 2;
     EncodingType address = 3;
-    RoleType role =4;
+    RoleType role = 4;
 }
 ```
 
-这里的细节请参考 arcblock/ abt-did-spec 里面关于创建 DID 的文档
+这里的细节请参考 arcblock/abt-did-spec 里面关于创建 DID 的文档
 
 以下的参考代码内为 Elixir 代码，用的是我们已经开源的 Forge-elixir-sdk 的库
 
 ```
-wallet-type = ForgeAbi.WalletType.new role: :role_account, key: :ed25519, hash: :sha3）
+wallet_type = ForgeAbi.WalletType.new(role: :role_account, key: :ed25519, hash: :sha3）
 wallet = ForgeSdk.Wallet.util.create(wallet_type）
 
 %ForgeABi.WalletInfo{
-address： "z1mwolwq...."
-...
+  address: "z1mwolwq...."  # DID 地址，里面包含了私钥类型，哈希算法及角色
+  pk: <<85，199, ...>>     # 公钥，32字节
+  sk: <<19，21，248，...>> # 私钥，我们用的ed25519，私钥地址包括了公钥，共64字节。
+}
 ```
 
-## DID 地址，里面包含了私钥类型，哈希算法及角色
-
-         pk：《85，199....》
-         ##公钥，32字节
-         sk：《19，21，248，....》
-         ##私钥，我们用的ed25519，私钥地址包括了公钥，共64字节。
-
-    }
-
 好的，这样我们创建的钱包已是在本地创建的，还苏耀把它申明到链上去，
+
 还记得之前说的，要在链上搞事情就得需要发一个 transaction。
 
+```
 message Transaction{
-string from 1;
-uint64 nonce = 2;
-string chain_id =3;
-bytes pk=4 ;
-bytes signature =13;
-repeated Mulitisky signatures = 14;
-google. protobuf.Any itx =15
+  string from = 1;
+  uint64 nonce = 2;
+  string chain_id = 3;
+  bytes pk = 4 ;
+  bytes signature = 13;
+  repeated Mulitisig signatures = 14;
+  google.protobuf.Any itx = 15
 }
-还剩下 signature， signatures heitx 未填， signaures 是多方签名，我们这一步还用不到，不用管它，在看签名之前我们先来看一下 itx。
+```
+还剩下 signature， signatures 和itx 未填， signaures 是多方签名，我们这一步还用不到，不用管它，在看签名之前我们先来看一下 itx。
 
 ## Forge 中的 itx 是什么?
 
@@ -220,13 +217,15 @@ itx 是 inner transaction 的缩写，都已经有了 tx，为啥还要有 itx �
 > ![](./images/itx.png)
 
 做个比喻，这个就像写信一样，每封信都有标题，抬头，征文，日期，和签名等，但是不同的信的征文内容是不同的。
-tx 就是信的模版，包括寄信人，标题，签名；而 itx 则是信的正文，代表了具体内容。Forge 只吃了十几种 tx，也就是说，有十几种 itx。
-我们要做的就是将刚创建的钱包中申明上的链的 itx 叫做 declare
+tx 就是信的模版，包括寄信人，标题，签名；而 itx 则是信的正文，代表了具体内容。Forge 支持了十几种 tx，也就是说，有十几种 itx。
+我们要做的将刚创建的钱包申明上的链的 itx 叫做 declare
 
-        message DeclareTx{
-            string moniker =1 ;  ##表示这个钱包账户的别名
-            ....
-        }
+```
+message DeclareTx{
+    string moniker = 1 ;  #表示这个钱包账户的别名
+    ....
+}
+```
 
 这里忽视了其他一些用不上的字段。
 那么如何将这个 declare tx 创建成一个 itx 呢？ 我们再来看一下 transaction 中定义的 itx 类型
@@ -235,19 +234,24 @@ google.protobuf.Any itx = 15;
 
 它的类型是 google.protobuf.Any, 这个是 google 提供的一种类型，如它的名字一样，是专门给任意类型用的一种通用的类型，它的定义如下
 
-        message Any{
-            string type-url =1;
-            bytes value =2;
-        }
+```
+message Any{
+    string type_url = 1;
+    bytes value = 2;
+}
+```
 
-既然是任意类型，那只用 value 来表示不就好了吗？ type-urt 是个什么鬼？ 这个其实是给应用程序用的，告诉它这个任意类型到底是个什么类型。google 射击的本意是这个 type-url 是一个 url， 但是我们并不需要它是一个 url，可以在任何字符串 Forge 中定义的 type-url 长这样
+既然是任意类型，那只用 value 来表示不就好了吗？ type_url 是个什么鬼？ 这个其实是给应用程序用的，告诉它这个任意类型到底是个什么类型。google 射击的本意是这个 type_url 是一个 url， 但是我们并不需要它是一个 url，可以在任何字符串 Forge 中定义的 type_url 长这样
 
-fg：t：declare
-Forge 缩写 type itx 类型
-declare = ForgeAbi. OeclareTx。new（moniker：“Johnson”）
-value = ForgeAbi.DeckclareTx.encede(declare)
-itx = Google.Parte.Any.new(type-url:"fg:t:declare",value:value)
-%Google.Proto.Any{type-url:"fg:t:declare",value:"lnlajonsnow"} ##lnlajonsnow 就是用 protobuf 编码的 declare itx
+```
+fg:t:declare       # forge缩写:type:itx类型
+```
+
+``
+declare = ForgeAbi.DeclareTx.new(moniker: "jonsnow")
+value = ForgeAbi.DeclareTx.encede(declare)
+itx = Google.Proto.Any.new(type_url: "fg:t:declare", value: value)
+%Google.Proto.Any{type_url: "fg:t:declare", value: "\n\ajonsnow"}  # 这个就是用 protobuf 编码的 declare itx
 
 好，现在再看一下我们的 tx
 
