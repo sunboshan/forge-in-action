@@ -361,37 +361,43 @@ ForgeSdk.send_tx(tx: tx)
 
 asset 表示资产，可以代表任何可交易的物体，这里我们用游戏地图举例子，先看看 create_asset 的定义
 
-        message createAssetTx{
-            string moniker = 1; ##这个资产的别名
-            google.protobuf.Any data=2;
-            bool readonly=3;
-            bool transferable=4; ##是否可转让
-            uint32  ttl=5;
-            string parent=6;
-            string address=7; ##资产地址
-        }
+```
+message CreateAssetTx{
+    string moniker = 1;    # 这个资产的别名
+    google.protobuf.Any data= 2;
+    bool readonly = 3;
+    bool transferable = 4; # 是否可转让
+    uint32 ttl = 5;
+    string parent = 6;
+    string address = 7;    # 资产地址
+}
+```
 
 这里定义了 7 个字段，我们只关心其中 4 个，其余的可以不管。
 
-        map = %Google.Protobuf.Any{value:"thisb is my map}
-        asset = ForgeAbi.CreateAssetTx.new(transferable:true,moniker:"map1",data:map)
+```
+map = %Google.Protobuf.Any{value: "this is my map"}
+asset = ForgeAbi.CreateAssetTx.new(transferable: true, moniker: "map1", data: map)
+```
 
 接下来还有 asset 中的地址为空，我们需要自己将它算出来。
 Forge 中的所有东西的 id 都是支持 DID 标准，对于 asset 的地址，也是一个 DID。那么 asset 地址怎么算呢？
 
-        hash = mcrypto.hash(%sha3{},ForgeAbi,createAssetTx.encode(itx))
-
-        之后的步骤请参考abt-did-spec文档中的步骤，这里算出的哈希作为第5步的输入。并且在选role-type时要选asset。
+```
+hash = Mcrypto.hash(%SHA3{}, ForgeAbi.createAssetTx.encode(itx)) # 之后的步骤请参考abt-did-spec文档中的步骤，这里算出的哈希作为第5步的输入。并且在选role-type时要选asset。
+```
 
 地址算好后填到上面的 asset 中
 
-        value = Forgeabi.createAsseTx.encode(asset))
-        itx = Google.proto.Any.new(type-url:"fg:t:create-asset",value:value)
-        %Google.proto.Any{type-url:"fg:t:create_asset",value:<<10.4.109....>>}
+```
+value = ForgeAbi.CreateAssetTx.encode(asset)
+itx = Google.Proto.Any.new(type_url: "fg:t:create-asset", value: value)
+%Google.Proto.Any{type_url: "fg:t:create_asset", value:<<10.4.109....>>}
+```
 
 接下来的步骤就是流水线作业，将：tx 塞入 tx 中，签名，发送
-成功后，一个 asset 就创建好了！里面的内容放的就是“this is my mao”.
-ok, 接下来我们要把该资产转移给另一个账户，这会用到 transfertx
+成功后，一个 asset 就创建好了！里面的内容放的就是"this is my map".
+ok, 接下来我们要把该资产转移给另一个账户，这会用到 transfer tx
 
 ### transfer tx
 
