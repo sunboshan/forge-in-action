@@ -133,12 +133,12 @@ Forge 中对于 transaction 的定义可以在 `arcblock/forge-abi/lib/protobuf/
 ```protobuf
 message Transaction {
   string from = 1;                    # 这个tx是谁发的，即钱包地址
-  uint64 nonce = 2 ；                 # nonce 用来防止重敌攻击，每次需要递增发送
-  string chain_id =3；                # tx发送至的链的id
-  bytes pk = 4；                      # 发tx的钱包的公钥
-  bytes signature = 13；              # 发tx的钱包的签名
-  repeated mulitisly signatures = 14；# 多方签名
-  google. protobuf.Any itx=15 ；      # inner transaction ，这个tx具体是干啥的
+  uint64 nonce = 2;                   # nonce 用来防止重敌攻击，每次需要递增发送
+  string chain_id = 3;                 # tx发送至的链的id
+  bytes pk = 4;                       # 发tx的钱包的公钥
+  bytes signature = 13;               # 发tx的钱包的签名
+  repeated multisig signatures = 14;  # 多方签名
+  google.protobuf.Any itx = 15;       # inner transaction ，这个tx具体是干啥的
 }
 ```
 
@@ -158,8 +158,8 @@ message Transaction {
 message walletinfor{
   bytes
   sl = 2;             # 私钥
-  bytes pk =3；       # 公钥
-  string address = 4；# DID地址
+  bytes pk = 3;        # 公钥
+  string address = 4; # DID地址
 }
 ```
 
@@ -322,8 +322,8 @@ poke 就是戳一下，作用是签到领取 25 个 token，一天只能领取�
 ```
 message Transaction{
     string from = 1;              # wallet.address
-    uint64 nonce = 2;             # 0 <- 注意对于poke来说nonce要用o
-    string chain_id =3;           # Forge
+    uint64 nonce = 2;             # 0 <- 注意对于poke来说nonce要用0
+    string chain_id = 3;          # Forge
     bytes pk = 4;                 # wallet.pk
     bytes signature = 13;
     repeated Multisig signatures = 14;
@@ -341,21 +341,21 @@ message PokeTx {
 ```
 
 ```
-poke = ForgeAbi.PokeTx.new(data:"2019-05-28",address:"zzzzzzz...")
+poke = ForgeAbi.PokeTx.new(data:"2019-05-28", address:"zzzzzzz...")
 value = ForgeAbi.PokeTx.encode(poke)
 itx = Google.proto.Any.new(type_url: "fg:t:poke", value: value)
-%Google.proto.Any{type_url: "fg:t:poke", value: <<10,10,50,...>>}
+%Google.Proto.Any{type_url: "fg:t:poke", value: <<10,10,50,...>>}
 ```
 
 然后把这个 itx 塞到上面的 tx 中，签名之后，发到链上吧！
 
 ```
-Forgesdk.send-tx (tx:tx)
+ForgeSdk.send_tx(tx: tx)
 "66313AFB...."
 ```
 
-成功以后去链上查询一下，此时我们的 jonsnow 常昊就多了 25 个 token 啦！
-好的，现在我们的钱包创建了，并且有了 25 个 token，接下来看看如何创建一个资产
+成功以后去链上查询一下，此时我们的 jonsnow 账号就多了 25 个 token 啦！
+好的，现在我们的钱包创建了，并且有了 25 个 token，接下来看看如何创建一个资产。
 
 ## create_asset tx
 
@@ -397,28 +397,32 @@ ok, 接下来我们要把该资产转移给另一个账户，这会用到 transf
 
 转让 transfer 是一个单方面的用户行为。用户可以向用户 b 转钱或者转资产，所以我们需要先创建第二个钱包
 
-        wallet_type = ForgeAbi.Wallettype.new(role::role_account,key:ed25519,hash:sha3)
-
-        wallet2 = Forgesdk.Wallet.util.create(wallet-type)
+```
+wallet_type = ForgeAbi.WalletType.new(role: :role_account, key: :ed25519, hash: :sha3)
+wallet2 = ForgeSdk.Wallet.Util.create(wallet_type)
+```
 
 之后用 declare tx 将其声明到链上去，这里就不再详写了。
 
 接下来看 transfer tx 的定义
 
-        message TransferTx {
-            string to = 1; ##目标钱包地址
-            BigUint value =2; ##给多少钱
-            repeated string assots =3; ##有哪些资产
-
-        }
+```
+message TransferTx {
+    string to = 1;              # 目标钱包地址
+    BigUint value = 2;          # 给多少钱
+    repeated string assets = 3; # 有哪些资产
+}
+```
 
 我们这里只转让一个刚才创建的地图资产，只需要 asset 地址即可。
 
-        map1 = “ejdqnc...”
-        transfer = ForgeAbi.TransferTx.new(to:wallet2.address,assets:[map1])
-        value = ForgeAbi.TransferTx.encode(transfer)
-        itx = Google.Proto.Any.new(type-url:"fg:t:transfer",value=value)
-        %Googel.proto.Any{type-url:"fg:t:transfer",value:<<10,35,122,...>>}
+```
+map1 = "ejdqnc..."
+transfer = ForgeAbi.TransferTx.new(to: wallet2.address, assets: [map1])
+value = ForgeAbi.TransferTx.encode(transfer)
+itx = Google.Proto.Any.new(type_url: "fg:t:transfer", value: value)
+%Googel.Proto.Any{type_url: "fg:t:transfer", value:<<10,35,122,...>>}
+```
 
 之后老套路，itx 放入 tx 中，签名，发送上链
 成功之后，本来属于用户 A 的资产现在就属于用户 B 了！
@@ -427,67 +431,72 @@ ok, 接下来我们要把该资产转移给另一个账户，这会用到 transf
 ### exchange tx
 
 之前所有讲过的 tx 都只需要一个签名，而 exchange tx 则需要两个签名，因为是交换资产所以需要交换的双方都同意才行。
-
 > ![](./images/交换.png)
 
 看一下 exchange tx 的定义
 
-        message Exchange {
-            string to =1; ##与哪个地址交换
-            ExchangeInfo sender =2; ##发送人信息
-            Exchangeinfor receiver =3; ##接受人信息
+```
+message Exchange {
+    string to = 1;             # 与哪个地址交换
+    ExchangeInfo sender = 2;   # 发送人信息
+    Exchangeinfo receiver = 3; # 接受人信息
 
-        }
-        message Exchangeinfor{
-            BigUint value =1 ; ##交换的金额
-            repeated string asets =2; ##交换的资产
-        }
-        message bigUint{
-            bytes value =1; ##因为金额是大整数，所以我们用bytes来表示
-
-        }
+}
+message Exchangeinfo {
+    BigUint value = 1;         # 交换的金额
+    repeated string asets = 2; # 交换的资产
+}
+message BigUint{
+    bytes value = 1;           # 因为金额是大整数，所以我们用bytes来表示
+}
+```
 
 构建一下 itx
 
-        exchange =ForgeAbi.ExchangeTx.new(to:wallet2.address,
-        sender:Forge.Exchangeinfor.new(value:ForgeAbi.token.to.uint(2)),
-        receiver:ForgeAbi.ExchangeInfo.new(assets:imap1))
-
-        value = ForgeAbi.ExchangeTx.encode(exchange)
-
-        itx=Google.Proto.Any.new(type-url:"fg:t:exchsange",value:value)
+```
+exchange = ForgeAbi.ExchangeTx.new(
+             to: wallet2.address,
+             sender: ForgeAbi.Exchangeinfo.new(value: ForgeAbi.token.to.uint(2)),
+             receiver: ForgeAbi.ExchangeInfo.new(assets: [map1]))
+value = ForgeAbi.ExchangeTx.encode(exchange)
+itx = Google.Proto.Any.new(type_url: "fg:t:exchange", value: value)
+```
 
 接下俩老套路，itx 放进 tx，签名
 至此，我们的 tx 还差最后一步，也是我们之前一直没用过的 Multisig 多方签名
 
-        Message Transaction{
-            string from =1; ##walle.address
-            uint64 nonce=2; ##1
-            string chain.id = 3; ##Forge
-            bytes pk = 4; ##wallet.pk
-            bytes signature = 13; ##signature
-            repeated Multisig signatures =  14;
-            google.protobuf.Any itx=15; ##itx
-        }
+```
+message Transaction{
+    string from = 1;                    # walle.address
+    uint64 nonce = 2;                   # 1
+    string chain_id = 3;                # Forge
+    bytes pk = 4;                       # wallet.pk
+    bytes signature = 13;               # signature
+    repeated Multisig signatures = 14;
+    google.protobuf.Any itx = 15;       # itx
+}
+```
 
 看下 multisig 的定义
 
-        message multisig{
-            string signer =1 ; ##用户的地址
-            byte pk =2；##用户b的公钥
-            bytes signature =3； ##用户B的签名
+```
+message Multisig{
+    string signer = 1;   # 用户B的地址
+    bytes pk = 2;        # 用户B的公钥
+    bytes signature = 3; # 用户B的签名
+}
+```
 
+这个 multisig 该如何构建呢？很简单。将用户 B 的地址和公钥填入，再塞进 tx 中，然后用户 B 签名就行啦！
 
-        }
+```
+mulitisig = ForgeAbi.Multisig.new(signer: wallet2.address, pk: wallet2.pk)   # 创建一个mulitisig的map
+tx = %{tx | signstures: [multisig]}                                          # 将其放入tx的signatures字段中，注意现在这个mulitisig的签名还是空哦
 
-这个 multisig 该如何构建呢？很简单 将用户 b 的地址和公共、钥匙、填入，再塞进 tx 中，然后用户 b 签名就行啦！
-
-        mulitisig = ForgeAbi.multisig.new(signer: wallet2.address,pk:wallet2.pk) ##创建一个mulitisig的map
-        tx = %{tx|signstures:Imultisig]} ##将其放入tx的signatures字段中，注意现在这个mulitisig的签名还是空哦
-
-        signature = Forgesdk.wallet.util.sign!(wallet2,ForgeAbi.transaction.encode(tx))将这个tx让用户B签名
-        multisig = %{nulisig | signature :sigbature }##签好之后把签名设入mulitisig的map中
-        tx = %{tx|sigbatures:I multisig}##最后将签名的multisig放入tx中
+signature = Forgesdk.Wallet.Util.sign!(wallet2, ForgeAbi.Transaction.encode(tx)) # 将这个tx让用户B签名
+multisig = %{multisig | signature: signature}                                    # 签好之后把签名设入multisig的map中
+tx = %{tx | signatures: [multisig]}                                              # 最后将签名的multisig放入tx中
+```
 
 至此，我们的 tx 就被用户 A 和用户 B 都签名了，可以发送的链上去了！
 成功后，资产被转移到 A 的名下，A 支付给 b 两个 token，交换成功！
