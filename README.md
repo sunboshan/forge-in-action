@@ -132,7 +132,7 @@ Forge 中对于 transaction 的定义可以在 `arcblock/forge-abi/lib/protobuf/
 
 ```protobuf
 message Transaction {
-  string from = 1;                    # 这个是谁发的，即钱包地址
+  string from = 1;                    # 这个tx是谁发的，即钱包地址
   uint64 nonce = 2 ；                 # nonce 用来防止重敌攻击，每次需要递增发送
   string chain_id =3；                # tx发送至的链的id
   bytes pk = 4；                      # 发tx的钱包的公钥
@@ -241,61 +241,74 @@ message Any{
 }
 ```
 
-既然是任意类型，那只用 value 来表示不就好了吗？ type_url 是个什么鬼？ 这个其实是给应用程序用的，告诉它这个任意类型到底是个什么类型。google 射击的本意是这个 type_url 是一个 url， 但是我们并不需要它是一个 url，可以在任何字符串 Forge 中定义的 type_url 长这样
+既然是任意类型，那只用 value 来表示不就好了吗？ type_url 是个什么鬼？ 这个其实是给应用程序用的，告诉它这个任意类型到底是个什么类型。google 设计的本意是这个 type_url 是一个 url， 但是我们并不需要它是一个 url，可以是任何字符串。
+
+Forge 中定义的 type_url 长这样
 
 ```
 fg:t:declare       # forge缩写:type:itx类型
 ```
 
-``
+```
 declare = ForgeAbi.DeclareTx.new(moniker: "jonsnow")
 value = ForgeAbi.DeclareTx.encede(declare)
 itx = Google.Proto.Any.new(type_url: "fg:t:declare", value: value)
 %Google.Proto.Any{type_url: "fg:t:declare", value: "\n\ajonsnow"}  # 这个就是用 protobuf 编码的 declare itx
+```
 
 好，现在再看一下我们的 tx
 
+```
 message Transaction {
-string from = 1; ##wallet.address
-uint64 noncew =2; ##1
-string chain_id =3; ##Forge
-bytes pk=4; ##wallet.pk
-bytes signature = 13;
-repeated Multisly signatures =14;
-google.protobuf. Any itx = 15;
-
-        }
+  string from = 1;           # wallet.address
+  uint64 nonce = 2;          # 1
+  string chain_id =3;        # forge
+  bytes pk = 4;              # wallet.pk
+  bytes signature = 13;
+  repeated Multisig signatures = 14;
+  google.protobuf.Any itx = 15;
+}
+```
 
 现在就差最后一步，签名了。
 
 ### Forge 中如何给 tx 签名？
 
-Forge 中的钱包支持 2 中椭圆形区间数字签名算法，ed25519 和 secp256 看
-。所谓的数字签名就是用钱包的私钥对 tx 的哈希做一个签名，之后别人可以用其公钥进行验证。
-signature = sign（data，sk）
-data 为 tx 序列化后的二进制哈希
-sk 这里是钱包的私钥
+Forge 中的钱包支持两种椭圆曲线数字签名算法，ed25519 和 secp256k1。所谓的数字签名就是用钱包的私钥对 tx 的哈希做一个签名，之后别人可以用其公钥进行验证。
 
-        hash = mcrypto.hash (%sha3{},ForgeAbi.Transaction.encode(tx))
-        sig =Mcrypto.sign!(%Ed25519{},hash,wallet.sk)
-        tx = %{tx|signature :sig}
+```
+signature = sign(data, sk)
+
+# data 为 tx 序列化后的二进制哈希
+# sk 这里是钱包的私钥
+```
+
+```
+hash = mcrypto.hash(%Sha3{}, ForgeAbi.Transaction.encode(tx))
+sig = Mcrypto.sign!(%Ed25519{}, hash, wallet.sk)
+tx = %{tx | signature: sig}
+```
 
 至此，我们的 tx 终于算是构造完成并且签好名了！ 接下来只需要把这个 tx 发送给 Forge 啦！
 
 ### 如何向 Forge 发送 tx？
 
-因为我们用 gRPC 与 Forge 进行交互，所以我们只需要拍使用一个 gRPC 提供的发送 tx 的服务就行了，这个服务在 Forge 中叫 send-tx，定义在 arcblock/Forge-abi/lib/protobuf/servoce.proto 中。
-进行这项操作需要参考你所用的语言的 gRPC 的库的文档，在 Elicir 中，这样做
-Forgesdk.send-tx(tx:tx)
-"48c265bb...."
+因为我们用 gRPC 与 Forge 进行交互，所以我们只需要使用一个 gRPC 提供的发送 tx 的服务就行了，这个服务在 Forge 中叫 send_tx，定义在 arcblock/forge-abi/lib/protobuf/service.proto 中。
+进行这项操作需要参考你所用的语言的 gRPC 的库的文档，在 Elixir 中，这样做
 
-之后返回的哈希即是这个 tx 在链上的哈希喽！用这个哈希就可以在链上查到其状态了。当我们把 tx 发送请给 Forge 后，Forge 会做一系列的检查，包括发送 tx 的钱包地址是否有效，签名是否有效等。之后 Forge 会把这个 tx 发送给下层的共识引擎，并且广播到 DID 网络中，最后会被打包到新的区块中，这样子我们发的 tx 相当于成功上链啦！ 当然上链并不代表这个 tx 就是成功了的，还需要检查这个 tx 的状态才行哦。
+```
+Forgesdk.send_tx(tx: tx)
+"48c265bb...."
+```
+
+之后返回的哈希即是这个 tx 在链上的哈希喽！用这个哈希就可以在链上查到其状态了。当我们把 tx 发送请给 Forge 后，Forge 会做一系列的检查，包括发送 tx 的钱包地址是否有效，签名是否有效等。之后 Forge 会把这个 tx 发送给下层的共识引擎，并且广播到 p2p 网络中，最后会被打包到新的区块中，这样子我们发的 tx 相当于成功上链啦！ 当然上链并不代表这个 tx 就是成功了的，还需要检查这个 tx 的状态才行哦。
 
 ### Forge 中常用的 tx
 
 方才我们学习了如何构建并签名一个 declare tx， 并且成功将其发送给 Forge，这样我们就成功地在 Forge 上创建了一个钱包账户，接下来我们来看一下，Forge 中有那些常用的 tx。
 
 假设有如下场景
+
 用户 a 创建了一个账户后，签到一次得到一些 token，之后创建了一个资产（游戏地图），
 并将这个资产免费转让了另一用户 b，之后用户 a 用一些 token 向用户 b 购买了该资产，完成了一次交换。
 
@@ -306,31 +319,40 @@ declare 之前我们已经看过了，接下来看 poke。
 poke 就是戳一下，作用是签到领取 25 个 token，一天只能领取一次。
 我们知道，发送 tx 时，tx 的结构都是一样的，不同的仅仅是 itx 的内容及签名。我们再来看一下 tx 的结构。
 
-        message Transaction{
-            string from =1 ; ##wallet.address
-            uint64 nonce = 2; ## 0 <-   注意对于poke来说nonce要用o
-            string chain_id =3； ## Forge
-            bytes pk=4； ## wallet.pk
-            bytes signature =13;
-            repeated Multisly signatures =14;
-            google.protobuf.Any itx =15; ##itx <-改用poke tx
-        }
+```
+message Transaction{
+    string from = 1;              # wallet.address
+    uint64 nonce = 2;             # 0 <- 注意对于poke来说nonce要用o
+    string chain_id =3;           # Forge
+    bytes pk = 4;                 # wallet.pk
+    bytes signature = 13;
+    repeated Multisig signatures = 14;
+    google.protobuf.Any itx = 15; # itx <- 改用poke tx
+}
+```
 
 poke tx 的定义如下
-message PokeTx{
-string data =1; ## 签到的日期，用当天
-string address =2； ##向哪个钱包地址签到，这个是固定的地址，“zzzzz..”(36 个 z)
 
-        }
+```
+message PokeTx {
+  string data = 1;     # 签到的日期，用当天
+  string address = 2;  # 向哪个钱包地址签到，这个是固定的地址，“zzzzz..”(36 个 z)
+}
+```
 
-        poke = ForgeAbi. PokeTx.new(data:"2019-05-28",address:"zzzzzzz...")
-        value = ForgeAbi.PokeTx.encode(poke)
-        itx=Google.proto.Any.new(type-url:"fg:t:poke",value:value)%Google.proto.Any{type-url:"fg:t:poke",value:<<10,10,50,...>>}
+```
+poke = ForgeAbi.PokeTx.new(data:"2019-05-28",address:"zzzzzzz...")
+value = ForgeAbi.PokeTx.encode(poke)
+itx = Google.proto.Any.new(type_url: "fg:t:poke", value: value)
+%Google.proto.Any{type_url: "fg:t:poke", value: <<10,10,50,...>>}
+```
 
 然后把这个 itx 塞到上面的 tx 中，签名之后，发到链上吧！
 
-        Forgesdk.send-tx (tx:tx)
-        "66313AFB...."
+```
+Forgesdk.send-tx (tx:tx)
+"66313AFB...."
+```
 
 成功以后去链上查询一下，此时我们的 jonsnow 常昊就多了 25 个 token 啦！
 好的，现在我们的钱包创建了，并且有了 25 个 token，接下来看看如何创建一个资产
