@@ -155,11 +155,10 @@ message Transaction {
 钱包其实就是一个存储了公钥/私钥/地址的一个数据结构，被定义于 protobuf 中，
 
 ```protobuf
-message walletinfor{
-  bytes
-  sl = 2;             # 私钥
+message WalletInfo {
+  bytes sk = 2;        # 私钥
   bytes pk = 3;        # 公钥
-  string address = 4; # DID地址
+  string address = 4;  # DID地址
 }
 ```
 
